@@ -14,7 +14,9 @@ func TestGraphQLWorkItemsReturnsGeneratedType(t *testing.T) {
 	srv := httptest.NewServer(Handler())
 	defer srv.Close()
 
-	body := `{"query":"{ workItems { id title state } }"}`
+	// Use the generated wire identifier so a future contracts-side rename
+	// breaks this test instead of silently shipping a different query.
+	body := `{"query":"{ ` + contracts.ListWorkItemsQueryName + ` { id title state } }"}`
 	resp, err := http.Post(srv.URL+"/graphql", "application/json", strings.NewReader(body))
 	if err != nil {
 		t.Fatal(err)

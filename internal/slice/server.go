@@ -75,8 +75,10 @@ type workItemsData struct {
 
 // supportedQuery is the only query string this slice answers. The hand-written
 // parser only matches by normalized whitespace; a real GraphQL impl arrives
-// behind its own decision.
-const supportedQuery = "{ workItems { id title state } }"
+// behind its own decision. The wire field name is sourced from the generated
+// contracts.ListWorkItemsQueryName constant per decision 006 / constraint
+// C-006 — the backend must not hand-type "workItems" here.
+var supportedQuery = "{ " + contracts.ListWorkItemsQueryName + " { id title state } }"
 
 func handleGraphQL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
