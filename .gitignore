@@ -1,0 +1,24 @@
+/bin/
+*.test
+*.out
+
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+service-account*.json
+
+# Local-only
+/var/
+*.local.json
+*.local.yaml

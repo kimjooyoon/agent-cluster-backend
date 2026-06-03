@@ -1,0 +1,45 @@
+name: security
+
+# Merge-blocking gate for credential leaks in the backend repo.
+#
+# Builds the contracts repo's secretscan tool (cloning the contracts repo
+# read-only at the pinned default branch) and runs it against this repo's
+# working tree. Centralizing the pattern set in the contracts repo means a
+# new secret pattern is added in one place; backend and frontend pick it up
+# on their next CI run.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout contracts (for secretscan)
+        uses: actions/checkout@v4
+        with:
+          repository: kimjooyoon/agent-cluster-contracts
+          path: contracts
+          ref: main
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Build secretscan from contracts repo
+        working-directory: contracts
+        run: go build -o ../bin/secretscan ./tools/secretscan
+
+      - name: Scan backend working tree
+        run: ./bin/secretscan backend
