@@ -25,9 +25,12 @@ func TestGraphQLWorkItemsReturnsGeneratedType(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want 200", resp.StatusCode)
 	}
+	// Mirrors workItemsData in server.go. The struct tag has to be a
+	// literal because Go does not allow tag values to reference a const;
+	// wirelint:ignore allows this one place to hold the wire name.
 	var got struct {
 		Data struct {
-			WorkItems []contracts.WorkItem `json:"workItems"`
+			WorkItems []contracts.WorkItem `json:"workItems"` // wirelint:ignore
 		} `json:"data"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {

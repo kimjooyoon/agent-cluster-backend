@@ -57,3 +57,14 @@ jobs:
             exit 1
           fi
           echo "contracts-drift: OK"
+
+      - name: Build wirelint (constraint C-006 / decision 008)
+        working-directory: contracts
+        run: go build -o ../bin/wirelint ./tools/wirelint
+
+      - name: wirelint — flag literal wire-name occurrences outside generated client
+        run: |
+          ./bin/wirelint \
+            --ir-dir contracts/ir/domain \
+            --root backend \
+            --exclude internal/contracts

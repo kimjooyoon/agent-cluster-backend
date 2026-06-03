@@ -70,14 +70,17 @@ type graphQLMessage struct {
 }
 
 type workItemsData struct {
-	WorkItems []contracts.WorkItem `json:"workItems"`
+	// Struct tag must be a string literal — Go does not allow it to reference
+	// the generated contracts.ListWorkItemsQueryName const. This is the one
+	// place backend must mirror the SSOT wire name. wirelint:ignore
+	WorkItems []contracts.WorkItem `json:"workItems"` //nolint:lll // wirelint:ignore
 }
 
 // supportedQuery is the only query string this slice answers. The hand-written
 // parser only matches by normalized whitespace; a real GraphQL impl arrives
 // behind its own decision. The wire field name is sourced from the generated
 // contracts.ListWorkItemsQueryName constant per decision 006 / constraint
-// C-006 — the backend must not hand-type "workItems" here.
+// C-006 — the backend must never hand-type the wire identifier as a literal.
 var supportedQuery = "{ " + contracts.ListWorkItemsQueryName + " { id title state } }"
 
 func handleGraphQL(w http.ResponseWriter, r *http.Request) {
