@@ -68,3 +68,14 @@ jobs:
             --ir-dir contracts/ir/domain \
             --root backend \
             --exclude internal/contracts
+
+      - name: Build vocablint (constraint C-001 / decision 014)
+        working-directory: contracts
+        run: go build -o ../bin/vocablint ./tools/vocablint
+
+      - name: vocablint — flag Go type redeclarations of IR aggregate/event names
+        run: |
+          ./bin/vocablint \
+            --ir-dir contracts/ir/domain \
+            --root backend \
+            --exclude internal/contracts
