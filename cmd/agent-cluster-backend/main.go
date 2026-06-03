@@ -1,13 +1,26 @@
-// agent-cluster-backend: placeholder entrypoint.
+// agent-cluster-backend: decision 003 first vertical slice.
 //
-// The real server (GraphQL + SSE, consumer of generated contract clients)
-// arrives with the first vertical-slice decision after 002-dumb-agent-role.
+// Starts the HTTP server in internal/slice on $PORT (default 8080).
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/kimjooyoon/agent-cluster-backend/internal/slice"
+)
 
 func main() {
-	fmt.Println("agent-cluster-backend: bootstrap-minimum build")
-	fmt.Println("contracts SSOT: https://github.com/kimjooyoon/agent-cluster-contracts")
-	fmt.Println("Real server arrives with the first vertical-slice decision.")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := ":" + port
+	fmt.Printf("agent-cluster-backend: decision 003 first vertical slice\n")
+	fmt.Printf("listening on http://localhost%s\n", addr)
+	fmt.Printf("  POST /graphql   { workItems { id title state } }\n")
+	fmt.Printf("  GET  /events    SSE WorkItemCreated\n")
+	log.Fatal(http.ListenAndServe(addr, slice.Handler()))
 }

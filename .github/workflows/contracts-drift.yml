@@ -1,0 +1,59 @@
+name: contracts-drift
+
+# Merge-blocking gate for contracts→backend code generation drift.
+#
+# Steps:
+#   1. Clone agent-cluster-contracts at main.
+#   2. Build its gen-go-client tool.
+#   3. Run that tool against this repo's expected contracts output path,
+#      writing to a temp dir.
+#   4. diff -r the temp dir against backend/internal/contracts/.
+#
+# Any disagreement fails the job. This is how we enforce constraint C-001
+# (no repo re-declares contract vocabulary) for Go consumers.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout contracts at main
+        uses: actions/checkout@v4
+        with:
+          repository: kimjooyoon/agent-cluster-contracts
+          path: contracts
+          ref: main
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Build gen-go-client
+        working-directory: contracts
+        run: go build -o ../bin/gen-go-client ./tools/gen-go-client
+
+      - name: Regenerate Go client into a temp directory
+        run: |
+          mkdir -p /tmp/regen
+          ./bin/gen-go-client --ir-dir contracts/ir/domain --out-dir /tmp/regen
+
+      - name: Diff committed vs regenerated
+        run: |
+          if ! diff -r backend/internal/contracts /tmp/regen; then
+            echo "::error::backend/internal/contracts has drifted from agent-cluster-contracts IR."
+            echo "Fix path: in agent-cluster-contracts, build gen-go-client and re-run it into backend/internal/contracts/. Then commit and re-push backend."
+            exit 1
+          fi
+          echo "contracts-drift: OK"
